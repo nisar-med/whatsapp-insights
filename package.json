@@ -6,6 +6,7 @@
     "dev": "node server.ts",
     "build": "next build",
     "start": "node server.ts",
+    "test": "npm run lint",
     "lint": "eslint .",
     "clean": "next clean"
   },
