@@ -1,12 +1,28 @@
 {
   "name": "whatsapp-insights",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.1.0-alpha.4",
   "type": "module",
+  "main": "dist/server.js",
+  "bin": {
+    "whatsapp-insights": "dist/server.js"
+  },
+  "files": [
+    "dist",
+    ".next",
+    "app",
+    "public",
+    "next.config.mjs",
+    "package.json",
+    "README.md"
+  ],
   "scripts": {
-    "dev": "node server.ts",
+    "dev": "WHATSAPP_INSIGHTS_DEV=true node server.ts",
     "build": "next build",
+    "build:app": "next build",
+    "build:server": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsc -p tsconfig.server.json",
     "start": "node server.ts",
+    "prepublishOnly": "npm run build:app && npm run build:server",
+    "test": "npm run lint",
     "lint": "eslint .",
     "clean": "next clean"
   },
