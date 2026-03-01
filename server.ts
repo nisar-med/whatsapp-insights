@@ -16,9 +16,35 @@ import qrcode from 'qrcode';
 import pino from 'pino';
 import path from 'path';
 import fs from 'fs';
+import { fileURLToPath } from 'url';
 
-const dev = process.env.NODE_ENV !== 'production';
-const app = next({ dev });
+const currentDir = path.dirname(fileURLToPath(import.meta.url));
+const packagedRuntime = path.basename(currentDir) === 'dist';
+const dev = process.env.WHATSAPP_INSIGHTS_DEV === 'true'
+    || (!packagedRuntime && process.env.NODE_ENV !== 'production');
+
+function hasNextAppStructure(dir: string) {
+    return fs.existsSync(path.join(dir, 'app')) || fs.existsSync(path.join(dir, 'pages'));
+}
+
+function resolveNextRootDir() {
+    const candidates = [
+        process.cwd(),
+        currentDir,
+        path.resolve(currentDir, '..')
+    ];
+
+    for (const candidate of candidates) {
+        if (hasNextAppStructure(candidate)) {
+            return candidate;
+        }
+    }
+
+    return process.cwd();
+}
+
+const appRootDir = resolveNextRootDir();
+const app = next({ dev, dir: appRootDir });
 const handle = app.getRequestHandler();
 
 const port = 3000;
