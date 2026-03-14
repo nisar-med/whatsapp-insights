@@ -98,6 +98,27 @@ function saveMessageStore(session: WhatsAppSession) {
     } catch (e) {}
 }
 
+function loadContactStore(authPath: string): Record<string, any> {
+    try {
+        const filePath = path.join(authPath, 'contacts.json');
+        if (fs.existsSync(filePath)) {
+            return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+        }
+    } catch (e) {}
+    return {};
+}
+
+function saveContactStore(session: WhatsAppSession) {
+    try {
+        if (!fs.existsSync(session.authPath)) return;
+        fs.writeFileSync(
+            path.join(session.authPath, 'contacts.json'),
+            JSON.stringify(session.contactStore),
+            'utf-8'
+        );
+    } catch (e) {}
+}
+
 function getOrCreateSession(sessionId: string): WhatsAppSession {
     const existing = sessions.get(sessionId);
     if (existing) return existing;
@@ -112,7 +133,7 @@ function getOrCreateSession(sessionId: string): WhatsAppSession {
         qrCode: null,
         messageStore: loadMessageStore(authPath),
         chatStore: {},
-        contactStore: {},
+        contactStore: loadContactStore(authPath),
         lastActivity: Date.now()
     };
     sessions.set(sessionId, created);
@@ -286,6 +307,7 @@ async function connectToWhatsApp(sessionId: string, io: Server) {
                 historyContacts.forEach((contact: any) => {
                     session.contactStore[contact.id] = contact;
                 });
+                saveContactStore(session);
                 io.to(getSessionRoom(sessionId)).emit('whatsapp:contacts', Object.values(session.contactStore));
             }
 
@@ -341,6 +363,7 @@ async function connectToWhatsApp(sessionId: string, io: Server) {
             contacts.forEach((contact: any) => {
                 session.contactStore[contact.id] = contact;
             });
+            saveContactStore(session);
             io.to(getSessionRoom(sessionId)).emit('whatsapp:contacts', Object.values(session.contactStore));
         });
     } catch (error) {
