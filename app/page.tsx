@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 interface Message {
   id: string;
   remoteJid: string;
+  participant: string | null;
   pushName: string;
   text: string;
   timestamp: number;
@@ -54,6 +55,18 @@ function getConversationName(jid: string, chats: Chat[], messages: Message[], co
   const msg = messages.find(m => m.remoteJid === jid);
   if (msg?.pushName) return msg.pushName;
   return jid.split('@')[0];
+}
+
+function getSenderName(msg: Message, contacts: Contact[]): string {
+  const senderJid = msg.participant;
+  if (senderJid) {
+    const contact = contacts.find(c => c.id === senderJid);
+    if (contact?.name) return contact.name;
+    if (contact?.notify) return contact.notify;
+  }
+  if (msg.pushName) return msg.pushName;
+  if (senderJid) return senderJid.split('@')[0];
+  return 'Unknown';
 }
 
 function formatTimestamp(timestamp: number): string {
@@ -403,7 +416,7 @@ export default function WhatsAppInsights() {
                       >
                         {isGroupJid(selectedConversation) && (
                           <span className="text-xs font-bold text-[#00a884] block mb-1">
-                            {msg.pushName || 'Unknown'}
+                            {getSenderName(msg, contacts)}
                           </span>
                         )}
                         <div className="flex justify-between items-start gap-2">
@@ -460,8 +473,8 @@ export default function WhatsAppInsights() {
                             </span>
                           </div>
                           <p className="text-xs text-gray-500 truncate mt-0.5">
-                            {isGroupJid(conv.jid) && conv.lastMessage.pushName
-                              ? `${conv.lastMessage.pushName}: `
+                            {isGroupJid(conv.jid)
+                              ? `${getSenderName(conv.lastMessage, contacts)}: `
                               : ''}
                             {conv.lastMessage.text || '(media)'}
                           </p>

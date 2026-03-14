@@ -161,6 +161,7 @@ function extractMessageData(msg: any) {
     return {
         id: msg.key.id,
         remoteJid: msg.key.remoteJid,
+        participant: msg.key.participant ?? null,
         pushName: msg.pushName,
         text,
         timestamp: Number(msg.messageTimestamp)
